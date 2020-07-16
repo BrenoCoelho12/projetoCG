@@ -2,13 +2,23 @@
 #include <GL/glu.h>
 #include <GL/glut.h>
 
-static int year1 = 0, year2 = 0, year3 = 0, day1 = 0 ,day2 = 0 ,day3 = 0;
+static int year1 = 1, year2 = 2, year3 = 0, day1 = 0 ,day2 = 0 ,day3 = 0, pos1 = 0, pos2 = 0;
 GLfloat m[16];
 
 void init(void)
 {
    glClearColor (0.0, 0.0, 0.0, 0.0);
    glShadeModel (GL_FLAT);
+}
+
+void animate(int n){
+	pos1 += year1;
+	pos2 += year2;
+
+	if (pos1, pos2 > 360.0){
+		pos1, pos2 -= 360.0;
+	}
+	glutPostRedisplay();
 }
 
 void display(void)
@@ -18,40 +28,29 @@ void display(void)
 
    glPushMatrix();
    glutWireSphere(1.0, 20, 16);   /* draw sun */
+   glPopMatrix();
 
-   glRotatef ((GLfloat) year1, 0.0, 0.0, 1.0);
+   glPushMatrix();
+   glRotatef ((GLfloat) pos1, 0.0, 0.0, 1.0);
    glTranslatef (2.0, 0.0, 0.0);
-
    glRotatef ((GLfloat) day1, 0.0, 0.0, 1.0);
    glutWireSphere(0.2, 10, 8);    /* draw smaller planet */
+   glPopMatrix();
 
-   glLoadMatrixf(m);
-   glRotatef ((GLfloat) year2, 0.0, 0.0, 1.0);
-   glTranslatef(4.0,0.0,0.0);
+   glPushMatrix();
+   glRotatef ((GLfloat) pos2, 0.0, 0.0, 1.0);
+   glTranslatef (5.0, 0.0, 0.0);
    glRotatef ((GLfloat) day2, 0.0, 0.0, 1.0);
    glutWireSphere(0.2, 10, 8);    /* draw smaller planet */
-
-   glLoadMatrixf(m);
-   glRotatef ((GLfloat) year3, 0.0, 0.0, 1.0);
-   glTranslatef(6.0,0.0,0.0);
-   glRotatef ((GLfloat) day3, 0.0, 0.0, 1.0);
-   glutWireSphere(0.2, 10, 8);    /* draw smaller planet */
+   glPopMatrix();
 
    glPopMatrix();
    glutSwapBuffers();
 
-   for(int i=0;i<5000000;i++){
-   }
-    day1 = (day1 + 1) % 360;
-    year1 = (year1 + 1) % 360;
-    day2 = (day2 + 2) % 360;
-    year2 = (year2 + 2) % 360;
-    day3 = (day3 + 3) % 360;
-    year3 = (year3 + 3) % 360;
-    glutPostRedisplay();
-
+   glutTimerFunc(10, animate, 1);
 
 }
+
 
 void reshape (int w, int h)
 {
