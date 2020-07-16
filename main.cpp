@@ -2,7 +2,7 @@
 #include <GL/glu.h>
 #include <GL/glut.h>
 
-static int year1 = 1, year2 = 2, year3 = 0, day1 = 0 ,day2 = 0 ,day3 = 0, pos1 = 0, pos2 = 0;
+static int year1 = 1, year2 = 2, year3 = 0, day1 = 0 ,day2 = 0 ,day3 = 0, pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
 GLfloat m[16];
 
 void init(void)
@@ -14,9 +14,11 @@ void init(void)
 void animate(int n){
 	pos1 += year1;
 	pos2 += year2;
+	pos3 += day1;
+	pos4 += day2;
 
-	if (pos1, pos2 > 360.0){
-		pos1, pos2 -= 360.0;
+	if (pos1, pos2, pos3, pos4 > 360.0){
+		pos1, pos2, pos3, pos4 -= 360.0;
 	}
 	glutPostRedisplay();
 }
