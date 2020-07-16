@@ -26,28 +26,37 @@ void display(void)
    glClear (GL_COLOR_BUFFER_BIT);
    glColor3f (1.0, 1.0, 1.0);
 
+   //Sol
    glPushMatrix();
-   glutWireSphere(1.0, 20, 16);   /* draw sun */
+   glutWireSphere(1.0, 20, 16);
    glPopMatrix();
 
+
+   //Planeta
    glPushMatrix();
    glRotatef ((GLfloat) pos1, 0.0, 0.0, 1.0);
    glTranslatef (2.0, 0.0, 0.0);
    glRotatef ((GLfloat) day1, 0.0, 0.0, 1.0);
-   glutWireSphere(0.2, 10, 8);    /* draw smaller planet */
+   glutWireSphere(0.2, 10, 8);
    glPopMatrix();
 
+   //Planeta Com lua
    glPushMatrix();
    glRotatef ((GLfloat) pos2, 0.0, 0.0, 1.0);
    glTranslatef (5.0, 0.0, 0.0);
    glRotatef ((GLfloat) day2, 0.0, 0.0, 1.0);
-   glutWireSphere(0.2, 10, 8);    /* draw smaller planet */
+   glutWireSphere(0.2, 10, 8);
+   glRotatef ((GLfloat) pos2, 0.0, 0.0, 1.0);
+   glTranslatef (1.0, 0.0, 0.0);
+   glutWireSphere(0.05, 10, 8);
+
+
    glPopMatrix();
 
    glPopMatrix();
    glutSwapBuffers();
 
-   glutTimerFunc(10, animate, 1);
+   glutTimerFunc(30, animate, 1);
 
 }
 
