@@ -5,8 +5,8 @@
 #include <math.h>
 #include <iostream>
 
-static int year1 = 1, year2 = 2, year3 = 0, day1 = 0 ,day2 = 0 ,day3 = 0;
-int  pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0, zoom  = 10;
+static int year1 = 1, year2 = 2, year3 = 0, day1 = 0 ,day2 = 0 ,day3 = 0, camera =1;
+float  pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0, zoom  = 10, xc=0 ,yc=0 ,zc=0;
 float mouseX = 0, mouseY = 0, mouseXp = 0, mouseYp = 0, movX=0, movY=0, cx = 0, cy = 0;
 bool primeiroMov = 1;
 GLsizei alt,larg;
@@ -15,11 +15,15 @@ float d2r = 3.14159265 / 180.0;
 static float theta = 0.0, thetar = 0.0, phi = 0.0, phir = 0.0;
 */
 
+float lightPos[] = { 0.0, 0.0, -75.0, 1.0 }; // Spotlight position.
+static float spotAngle = 40; // Spotlight cone half-angle.
+float spotDirection[] = { 1.0, 0.0, 0.0 }; // Spotlight direction.
+static float spotExponent = 1.0; // Spotlight exponent = attenuation factor.
 
 void init(void)
 {
    glClearColor (0.0, 0.0, 0.0, 0.0);
-   glShadeModel (GL_FLAT);
+   glShadeModel (GL_SMOOTH);
 }
 
 void animate(int n){
@@ -37,20 +41,28 @@ void animate(int n){
 }
 
 void display(void)
-{  glViewport (0, 0, larg, alt);
-   glMatrixMode (GL_PROJECTION);
-   glLoadIdentity ();
-   gluPerspective(90.0, larg/alt, 0.0, 40.0);
-   glMatrixMode(GL_MODELVIEW);
+{
    glLoadIdentity();
-   gluLookAt (1.5*cx, 1.5*cy, zoom, cx, cy , 1.0, 0.0, 1.0, 0.0);
 
-   glClear (GL_COLOR_BUFFER_BIT);
+   if(camera == 1){
+        gluLookAt (cx, 1.5*cy, zoom, cx+xc, cy , 1.0, 0.0, 1.0, 0.0);
+   }
+   if(camera == 2){
+        gluLookAt (cx +xc, zoom , cy +xc, cx, 1.0,cy , 1.0, 0.5, -1.0);
+   }
+   if(camera == 3){
+        gluLookAt (cx+xc, zoom, cy, 1.0, cx + xc , cy, 0.0, 0.0 , 1.0);
+   }
+
+   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    glColor3f (1.0, 1.0, 1.0);
 
+
+   GLUquadric *quadric;
+   quadric = gluNewQuadric();
    //Sol
    glPushMatrix();
-   glutWireSphere(1.0, 20, 16);
+   gluSphere(quadric, 1.0 , 20.0, 20.0);
    glPopMatrix();
 
 
@@ -60,7 +72,7 @@ void display(void)
    glRotatef ((GLfloat) pos1 , 0.0, 0.0, 1.0);
    glTranslatef (2.0 ,0.0, 0.0f);
    glRotatef ((GLfloat) day1, 0.0, 0.0, 1.0);
-   glutWireSphere(0.2, 10, 8);
+   gluSphere(quadric, 0.2 , 20.0, 20.0);
    glPopMatrix();
 
    //Planeta Com lua
@@ -68,10 +80,10 @@ void display(void)
    glRotatef ((GLfloat) pos2, 0.0, 0.0, 1.0);
    glTranslatef (5.0, 0.0, 0.0);
    glRotatef ((GLfloat) day2, 0.0, 0.0, 1.0);
-   glutWireSphere(0.2, 10, 8);
+   glutSolidSphere(0.2, 10, 8);
    glRotatef ((GLfloat) pos2, 0.0, 0.0, 1.0);
    glTranslatef (1.0, 0.0, 0.0);
-   glutWireSphere(0.05, 10, 8);
+   glutSolidSphere(0.05, 10, 8);
 
 
    glPopMatrix();
@@ -91,11 +103,9 @@ void reshape (int w, int h)
    glViewport (0, 0, (GLsizei) w, (GLsizei) h);
    glMatrixMode (GL_PROJECTION);
    glLoadIdentity ();
-   gluPerspective(90.0, (GLfloat) w/(GLfloat) h, 0.0, 40.0);
+   gluPerspective(90.0, (GLfloat) w/(GLfloat) h, 0.1, 40.0);
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
-   gluLookAt (1.5*cx, 1.5*cy, zoom, cx, cy, 1.0, 0.0, 1.0, 0.0);
-
 }
 
 
@@ -116,6 +126,7 @@ void mouseWheel(int wheel, int direction, int x, int y)
 }
 
 
+
 void MouseMove( int x, int y)
 {
 
@@ -124,6 +135,8 @@ void MouseMove( int x, int y)
         mouseY = y;
         mouseXp = x;
         mouseYp = y;
+        movX = 0;
+        movY = 0;
         primeiroMov = 0;
         return;
     }
@@ -132,14 +145,14 @@ void MouseMove( int x, int y)
     movX = mouseX - mouseXp;
     movY = mouseY - mouseYp;
 
-    if(cx,cy <20 && cx,cy >-20){
+    if(cx,cy <20 && cx,cy >-20 && !primeiroMov){
         cx-=(movX/50);
         cy+=(movY/50);
     }
     std::cout<<cx<<" - "<<cy<<std::endl;
 
-    mouseXp = mouseX;
-    mouseYp = mouseY;
+    mouseXp = x;
+    mouseYp = y;
 
     primeiroMov = 1;
 	glutPostRedisplay();
@@ -152,12 +165,44 @@ void MyKeyboardFunc(unsigned char Key, int x, int y)
     case 'r':
         cx = 0, cy = 0, zoom = 10, primeiroMov = 1;
         break;
+    case '1':
+        camera = 1;
+        break;
+    case '2':
+        camera = 2;
+        break;
+    case '3':
+        camera = 3;
+        break;
+
 
     case ' ':
     break;
     exit(1);
 break;
 };
+}
+
+void SpecialKeyboard(int key, int x, int y)
+{
+   switch (key) {
+      case GLUT_KEY_LEFT:
+         xc = xc-0.5;
+         glutPostRedisplay();
+         break;
+      case GLUT_KEY_RIGHT:
+         xc = xc+0.5;
+         glutPostRedisplay();
+         break;
+      case GLUT_KEY_UP:
+         zoom = zoom-0.5;
+         glutPostRedisplay();
+         break;
+      case GLUT_KEY_DOWN:
+         zoom = zoom+0.5;
+         glutPostRedisplay();
+         break;
+    }
 }
 
 int main(int argc, char** argv)
@@ -172,6 +217,7 @@ int main(int argc, char** argv)
    glutReshapeFunc(reshape);
    glutMouseWheelFunc(mouseWheel);
    glutMotionFunc(MouseMove);
+   glutSpecialFunc(SpecialKeyboard);
    glutKeyboardFunc(MyKeyboardFunc);
    glutMainLoop();
    return 0;
