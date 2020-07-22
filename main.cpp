@@ -15,13 +15,38 @@ float d2r = 3.14159265 / 180.0;
 static float theta = 0.0, thetar = 0.0, phi = 0.0, phir = 0.0;
 */
 
-float lightPos[] = { 0.0, 0.0, -75.0, 1.0 }; // Spotlight position.
-static float spotAngle = 40; // Spotlight cone half-angle.
-float spotDirection[] = { 1.0, 0.0, 0.0 }; // Spotlight direction.
+float lightPos[] = { 0.0, 0.0, 0.0, 1.0 }; // Spotlight position.
+static float spotAngle = 60; // Spotlight cone half-angle.
 static float spotExponent = 1.0; // Spotlight exponent = attenuation factor.
+GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+GLfloat mat_shininess[] = { 50.0 };
 
 void init(void)
 {
+    glEnable(GL_LIGHTING);
+	float lightAmb[] = { 0.0, 0.0, 0.0, 1.0 };
+	float lightDifAndSpec[] = { 1.0, 1.0, 1.0, 1.0 };
+
+	float globAmb[] = { 0.5, 0.5, 0.5, 1.0 };
+	glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmb);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDifAndSpec);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, lightDifAndSpec);
+
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, globAmb);
+	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
+	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+	glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, spotAngle);
+	glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, spotExponent);
+
+
+   glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+   glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+
+   glEnable(GL_LIGHTING);
+   glEnable(GL_LIGHT0);
+   glEnable(GL_DEPTH_TEST);
+
    glClearColor (0.0, 0.0, 0.0, 0.0);
    glShadeModel (GL_SMOOTH);
 }
@@ -63,12 +88,9 @@ void display(void)
    //Sol
    glPushMatrix();
    gluSphere(quadric, 1.0 , 20.0, 20.0);
-   glPopMatrix();
-
 
    //Planeta
 
-   glPushMatrix();
    glRotatef ((GLfloat) pos1 , 0.0, 0.0, 1.0);
    glTranslatef (2.0 ,0.0, 0.0f);
    glRotatef ((GLfloat) day1, 0.0, 0.0, 1.0);
@@ -80,10 +102,10 @@ void display(void)
    glRotatef ((GLfloat) pos2, 0.0, 0.0, 1.0);
    glTranslatef (5.0, 0.0, 0.0);
    glRotatef ((GLfloat) day2, 0.0, 0.0, 1.0);
-   glutSolidSphere(0.2, 10, 8);
+   gluSphere(quadric, 0.2 , 20.0, 20.0);
    glRotatef ((GLfloat) pos2, 0.0, 0.0, 1.0);
    glTranslatef (1.0, 0.0, 0.0);
-   glutSolidSphere(0.05, 10, 8);
+   gluSphere(quadric, 0.05 , 20.0, 20.0);
 
 
    glPopMatrix();
@@ -117,7 +139,7 @@ void mouseWheel(int wheel, int direction, int x, int y)
       mouseX, mouseY, mouseXp, mouseYp = 0;
       primeiroMov = 1;
 	}
-	if (direction > 0 && zoom > 2){
+	if (direction > 0 && zoom > -1){
       zoom--;
       mouseX, mouseY, mouseXp, mouseYp = 0;
       primeiroMov = 1;
