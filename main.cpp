@@ -2,10 +2,11 @@
 #include <GL/glu.h>
 #include <GL/glut.h>
 #include <GL/freeglut_ext.h>
+#include "imageloader.h"
 #include <math.h>
 #include <iostream>
 
-static int year1 = 1, year2 = 2, year3 = 0, day1 = 0 ,day2 = 0 ,day3 = 0, camera =1;
+static int year1 = 3, year2 = 1, year3 = 2 , day1 = 1 ,day2 = 2 ,day3 = 3, camera = 1;
 float  pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0, zoom  = 10, xc=0 ,yc=0 ,zc=0;
 float mouseX = 0, mouseY = 0, mouseXp = 0, mouseYp = 0, movX=0, movY=0, cx = 0, cy = 0;
 bool primeiroMov = 1;
@@ -21,8 +22,39 @@ static float spotExponent = 1.0; // Spotlight exponent = attenuation factor.
 GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 GLfloat mat_shininess[] = { 50.0 };
 
+GLuint loadTexture(Image* image) {
+	//http://www.codeincodeblock.com/2012/05/simple-method-for-texture-mapping-on.html
+	GLuint textureId;
+	glGenTextures(1, &textureId);
+	glBindTexture(GL_TEXTURE_2D, textureId);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->width, image->height, 0, GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+	return textureId;
+}
+
+GLuint solText, terText, luaText, venText;
+
 void init(void)
 {
+
+
+    glClearColor (0.0, 0.0, 0.0, 0.0);
+    glShadeModel (GL_SMOOTH);
+
+
+    Image* lua= loadBMP("C://Users//lu_fe//Downloads//Untitled Folder 1//CG//proj//moon.bmp");
+    luaText = loadTexture(lua);
+    delete lua;
+	Image* sol = loadBMP("C://Users//lu_fe//Downloads//Untitled Folder 1//CG//proj//sun.bmp");
+	solText = loadTexture(sol);
+	delete sol;
+	Image* ter = loadBMP("C://Users//lu_fe//Downloads//Untitled Folder 1//CG//proj//earth.bmp");
+	terText = loadTexture(ter);
+	delete ter;
+	Image* ven = loadBMP("C://Users//lu_fe//Downloads//Untitled Folder 1//CG//proj//venus.bmp");
+	venText = loadTexture(ven);
+	delete ven;
+
+
     glEnable(GL_LIGHTING);
 	float lightAmb[] = { 0.0, 0.0, 0.0, 1.0 };
 	float lightDifAndSpec[] = { 1.0, 1.0, 1.0, 1.0 };
@@ -46,9 +78,6 @@ void init(void)
    glEnable(GL_LIGHTING);
    glEnable(GL_LIGHT0);
    glEnable(GL_DEPTH_TEST);
-
-   glClearColor (0.0, 0.0, 0.0, 0.0);
-   glShadeModel (GL_SMOOTH);
 }
 
 void animate(int n){
@@ -85,35 +114,66 @@ void display(void)
 
    GLUquadric *quadric;
    quadric = gluNewQuadric();
+
+
    //Sol
    glPushMatrix();
+   glRotatef ((GLfloat) pos3, 0.0, 0.0, 1.0);
+   glEnable(GL_TEXTURE_2D);
+   glBindTexture(GL_TEXTURE_2D, solText);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   gluQuadricTexture(quadric, 1);
    gluSphere(quadric, 1.0 , 20.0, 20.0);
+   glDisable(GL_TEXTURE_2D);
 
    //Planeta
 
    glRotatef ((GLfloat) pos1 , 0.0, 0.0, 1.0);
    glTranslatef (2.0 ,0.0, 0.0f);
-   glRotatef ((GLfloat) day1, 0.0, 0.0, 1.0);
+   glRotatef ((GLfloat) pos3, 0.0, 0.0, 1.0);
+
+   glEnable(GL_TEXTURE_2D);
+   glBindTexture(GL_TEXTURE_2D, venText);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   gluQuadricTexture(quadric, 1);
    gluSphere(quadric, 0.2 , 20.0, 20.0);
+   glDisable(GL_TEXTURE_2D);
+
    glPopMatrix();
 
    //Planeta Com lua
    glPushMatrix();
    glRotatef ((GLfloat) pos2, 0.0, 0.0, 1.0);
    glTranslatef (5.0, 0.0, 0.0);
-   glRotatef ((GLfloat) day2, 0.0, 0.0, 1.0);
+   glRotatef ((GLfloat) pos4, 0.0, 0.0, 1.0);
+
+   glEnable(GL_TEXTURE_2D);
+   glBindTexture(GL_TEXTURE_2D, terText);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   gluQuadricTexture(quadric, 1);
    gluSphere(quadric, 0.2 , 20.0, 20.0);
+   glDisable(GL_TEXTURE_2D);
+
    glRotatef ((GLfloat) pos2, 0.0, 0.0, 1.0);
    glTranslatef (1.0, 0.0, 0.0);
-   gluSphere(quadric, 0.05 , 20.0, 20.0);
 
+   glEnable(GL_TEXTURE_2D);
+   glBindTexture(GL_TEXTURE_2D, luaText);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   gluQuadricTexture(quadric, 1);
+   gluSphere(quadric, 0.05 , 20.0, 20.0);
+   glDisable(GL_TEXTURE_2D);
 
    glPopMatrix();
 
    glPopMatrix();
    glutSwapBuffers();
 
-   glutTimerFunc(30, animate, 1);
+   glutTimerFunc(50, animate, 1);
 
 }
 
