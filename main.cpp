@@ -11,10 +11,10 @@ float  pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0, zoom  = 10, xc=0 ,yc=0 ,zc=0;
 float mouseX = 0, mouseY = 0, mouseXp = 0, mouseYp = 0, movX=0, movY=0, cx = 0, cy = 0;
 bool primeiroMov = 1;
 GLsizei alt,larg;
-/*
-float d2r = 3.14159265 / 180.0;
-static float theta = 0.0, thetar = 0.0, phi = 0.0, phir = 0.0;
-*/
+
+   float d2r = 3.14159265 / 180.0;
+   static float theta = 0.0, thetar = 0.0, phi = 0.0, phir = 0.0;
+
 
 float lightPos[] = { 0.0, 0.0, 0.0, 1.0 }; // Spotlight position.
 static float spotAngle = 60; // Spotlight cone half-angle.
@@ -89,13 +89,18 @@ void animate(int n){
 	if (pos1, pos2, pos3, pos4 > 360.0){
 		pos1, pos2, pos3, pos4 -= 360.0;
 	}
+    theta +=1;
 	glutPostRedisplay();
-    //theta +=10;
+
 
 }
 
 void display(void)
 {
+
+   thetar = theta * d2r;
+
+
    glLoadIdentity();
 
    if(camera == 1){
@@ -126,12 +131,13 @@ void display(void)
    gluQuadricTexture(quadric, 1);
    gluSphere(quadric, 1.0 , 20.0, 20.0);
    glDisable(GL_TEXTURE_2D);
+   glPopMatrix();
 
    //Planeta
-
-   glRotatef ((GLfloat) pos1 , 0.0, 0.0, 1.0);
-   glTranslatef (2.0 ,0.0, 0.0f);
-   glRotatef ((GLfloat) pos3, 0.0, 0.0, 1.0);
+   glPushMatrix();
+   glTranslatef(1.0,0.0,0.0);
+   glTranslatef (3.5*sin(thetar), 2.0*cos(thetar), 0.0f);
+   glRotatef ((GLfloat) pos1, 0.0, 0.0, 1.0);
 
    glEnable(GL_TEXTURE_2D);
    glBindTexture(GL_TEXTURE_2D, venText);
