@@ -9,31 +9,22 @@
 static int day1 = 1 ,day2 = 2 ,day3 = 3, camera = 1;
 float  rot1 = 0, rot2 = 0, rot3 = 0, zoom  = 10;
 float mouseX = 0, mouseY = 0, mouseXp = 0, mouseYp = 0, movX=0, movY=0, cx = 0, cy = 0;
-bool primeiroMov = 1;
+bool primeiroMov = 1, pare = 0;
 GLsizei alt,larg;
 
 float d2r = 3.14159265 / 180.0;
 static float theta = 0.0, thetar = 0.0, phi = 0.0, phir = 0.0;
 
 
-float lightPos0[] = { 1.1, 0.0, 0.0, 0.0}; // Spotlight position.
-float lightPos1[] = { 0.0, 1.1, 0.0, 0.0}; // Spotlight position.
-float lightPos2[] = { 0.0, 0.0, 1.1, 0.0}; // Spotlight position.
-float lightPos3[] = { -1.1, 0.0, 0.0, 0.0}; // Spotlight position.
-float lightPos4[] = { 0.0, -1.1, 0.0, 0.0}; // Spotlight position.
-float lightPos5[] = { 0.0, 0.0, -1.1, 0.0}; // Spotlight position.
+GLfloat lightDir0[] = { -1.0, 0.0, 0.0};
+GLfloat lightDir1[] = { 0.0, -1.0, 0.0};
+GLfloat lightDir2[] = { 1.0, 0.0, 0.0};
+GLfloat lightDir3[] = { 0.0, 1.0, 0.0};
 
-float lightDir0[] = { 1.0, 0.0, 0.0};
-float lightDir1[] = { 0.0, 1.0, 0.0};
-float lightDir2[] = { 0.0, 0.0, 1.0};
-float lightDir3[] = { -1.0, 0.0, 0.0};
-float lightDir4[] = { 0.0, -1.0, 0.0};
-float lightDir5[] = { 0.0, 0.0, -1.0};
-
-static float spotAngle = 180; // Spotlight cone half-angle.
-static float spotExponent = 2.0; // Spotlight exponent = attenuation factor.
+static float spotAngle = 90; // Spotlight cone half-angle.
+static float spotExponent = 1.0; // Spotlight exponent = attenuation factor.
 GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-GLfloat mat_shininess[] = { 50.0 };
+GLfloat mat_shininess[] = { 75.0 };
 
 GLuint loadTexture(Image* image) {
 	//http://www.codeincodeblock.com/2012/05/simple-method-for-texture-mapping-on.html
@@ -68,68 +59,26 @@ void init(void)
 	delete ven;
 
 ////////////////////
-    glEnable(GL_LIGHTING);
 	float lightAmb[] = { 0.0, 0.0, 0.0, 1.0 };
 	float lightDifAndSpec[] = { 0.5, 0.5, 0.5, 1.0 };
 
 	float globAmb[] = { 0.5, 0.5, 0.5, 1.0 };
-	glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmb);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDifAndSpec);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, lightDifAndSpec);
-	glLightf(GL_LIGHT0,GL_SPOT_CUTOFF, spotAngle);
-	glLightf(GL_LIGHT0,GL_SPOT_EXPONENT, spotExponent);
-
-	glLightfv(GL_LIGHT1, GL_AMBIENT, lightAmb);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, lightDifAndSpec);
-	glLightfv(GL_LIGHT1, GL_SPECULAR, lightDifAndSpec);
-	glLightf(GL_LIGHT1,GL_SPOT_CUTOFF, spotAngle);
-	glLightf(GL_LIGHT1,GL_SPOT_EXPONENT, spotExponent);
-
-	glLightfv(GL_LIGHT2, GL_AMBIENT, lightAmb);
-	glLightfv(GL_LIGHT2, GL_DIFFUSE, lightDifAndSpec);
-	glLightfv(GL_LIGHT2, GL_SPECULAR, lightDifAndSpec);
-	glLightf(GL_LIGHT2,GL_SPOT_CUTOFF, spotAngle);
-	glLightf(GL_LIGHT2,GL_SPOT_EXPONENT, spotExponent);
-
-	glLightfv(GL_LIGHT3, GL_AMBIENT, lightAmb);
-	glLightfv(GL_LIGHT3, GL_DIFFUSE, lightDifAndSpec);
-	glLightfv(GL_LIGHT3, GL_SPECULAR, lightDifAndSpec);
-	glLightf(GL_LIGHT3,GL_SPOT_CUTOFF, spotAngle);
-	glLightf(GL_LIGHT3,GL_SPOT_EXPONENT, spotExponent);
-
-	glLightfv(GL_LIGHT4, GL_AMBIENT, lightAmb);
-	glLightfv(GL_LIGHT4, GL_DIFFUSE, lightDifAndSpec);
-	glLightfv(GL_LIGHT4, GL_SPECULAR, lightDifAndSpec);
-	glLightf(GL_LIGHT4,GL_SPOT_CUTOFF, spotAngle);
-	glLightf(GL_LIGHT4,GL_SPOT_EXPONENT, spotExponent);
-
-	glLightfv(GL_LIGHT5, GL_AMBIENT, lightAmb);
-	glLightfv(GL_LIGHT5, GL_DIFFUSE, lightDifAndSpec);
-	glLightfv(GL_LIGHT5, GL_SPECULAR, lightDifAndSpec);
-	glLightf(GL_LIGHT5,GL_SPOT_CUTOFF, spotAngle);
-	glLightf(GL_LIGHT5,GL_SPOT_EXPONENT, spotExponent);
-
-
-   glLightfv(GL_LIGHT0,GL_POSITION,lightPos0);
-   glLightfv(GL_LIGHT1,GL_POSITION,lightPos1);
-   glLightfv(GL_LIGHT2,GL_POSITION,lightPos2);
-   glLightfv(GL_LIGHT3,GL_POSITION,lightPos3);
-   glLightfv(GL_LIGHT4,GL_POSITION,lightPos4);
-   glLightfv(GL_LIGHT5,GL_POSITION,lightPos5);
+	glLightfv((GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4), GL_AMBIENT, lightAmb);
+	glLightfv((GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4), GL_DIFFUSE, lightDifAndSpec);
+	glLightfv((GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4), GL_SPECULAR, lightDifAndSpec);
+	glLightf((GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4),GL_SPOT_CUTOFF, spotAngle);
+	glLightf((GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4),GL_SPOT_EXPONENT, spotExponent);
 
    glLightfv(GL_LIGHT0,GL_SPOT_DIRECTION,lightDir0);
    glLightfv(GL_LIGHT1,GL_SPOT_DIRECTION,lightDir1);
    glLightfv(GL_LIGHT2,GL_SPOT_DIRECTION,lightDir2);
    glLightfv(GL_LIGHT3,GL_SPOT_DIRECTION,lightDir3);
-   glLightfv(GL_LIGHT4,GL_SPOT_DIRECTION,lightDir4);
-   glLightfv(GL_LIGHT5,GL_SPOT_DIRECTION,lightDir5);
 
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, globAmb);
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 
 /////////////////////
-
+   glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
@@ -138,13 +87,11 @@ void init(void)
    glEnable(GL_LIGHT1);
    glEnable(GL_LIGHT2);
    glEnable(GL_LIGHT3);
-   glEnable(GL_LIGHT4);
-   glEnable(GL_LIGHT5);
    glEnable(GL_DEPTH_TEST);
 }
 
 void animate(int n){
-	//thetar = theta*d2r;
+	if(!pare){
 	rot1 += day1;
 	rot2 += day2;
 	rot3 += day3;
@@ -153,9 +100,8 @@ void animate(int n){
 	}
     theta +=3;
     phi+=1;
-	glutPostRedisplay();
-
-
+	}
+    glutPostRedisplay();
 }
 
 void display(void)
@@ -167,30 +113,61 @@ void display(void)
    glLoadIdentity();
    if(camera == 1){
         gluLookAt (cx, cy, zoom, cx, cy , 0.0, 0.0, 1.0, 0.0);
+
+       GLfloat lightPos0[] = { 1.0, 0.0, 0.0, 1.0}; // Spotlight position.
+       GLfloat lightPos1[] = { 0.0, 1.0, 0.0, 1.0}; // Spotlight position.
+       GLfloat lightPos2[] = { -1.0, 0.0,0.0, 1.0}; // Spotlight position.
+       GLfloat lightPos3[] = { 0.0, -1.0,0.0, 1.0}; // Spotlight position.
+
+       glLightfv(GL_LIGHT0,GL_POSITION,lightPos0);
+       glLightfv(GL_LIGHT1,GL_POSITION,lightPos1);
+       glLightfv(GL_LIGHT2,GL_POSITION,lightPos2);
+       glLightfv(GL_LIGHT3,GL_POSITION,lightPos3);
+
    }
    if(camera == 2){
-        gluLookAt (cx, zoom , cy, cx, 0.0,cy , 1.0, 0.5, 1.0);
+       gluLookAt (cx, zoom , cy, cx, 0.0,cy , 1.0, -0.5, 1.0);
+       GLfloat lightPos0[] = { 1.0, 0.0, 0.0, 1.0}; // Spotlight position.
+       GLfloat lightPos1[] = { 0.0, 0.0, 1.0, 1.0}; // Spotlight position.
+       GLfloat lightPos2[] = {-1.0, 0.0, 0.0, 1.0}; // Spotlight position.
+       GLfloat lightPos3[] = { 0.0, 0.0,-1.0, 1.0}; // Spotlight position.
+
+       glLightfv(GL_LIGHT0,GL_POSITION,lightPos0);
+       glLightfv(GL_LIGHT1,GL_POSITION,lightPos1);
+       glLightfv(GL_LIGHT2,GL_POSITION,lightPos2);
+       glLightfv(GL_LIGHT3,GL_POSITION,lightPos3);
    }
    if(camera == 3){
-        gluLookAt (cx, zoom, cy, 0.0, cx , cy, 0.0, 0.0 , 1.0);
-   }
+       gluLookAt (cx,zoom,cy,cx,0.0,cy, 0.0, 0.0 , 1.0);
+       GLfloat lightPos0[] = { 1.0, 0.0, 0.0, 1.0}; // Spotlight position.
+       GLfloat lightPos1[] = { 0.0, 0.0, 1.0, 1.0}; // Spotlight position.
+       GLfloat lightPos2[] = {-1.0, 0.0, 0.0, 1.0}; // Spotlight position.
+       GLfloat lightPos3[] = { 0.0, 0.0,-1.0, 1.0}; // Spotlight position.
 
+       glLightfv(GL_LIGHT0,GL_POSITION,lightPos0);
+       glLightfv(GL_LIGHT1,GL_POSITION,lightPos1);
+       glLightfv(GL_LIGHT2,GL_POSITION,lightPos2);
+       glLightfv(GL_LIGHT3,GL_POSITION,lightPos3);
+   }
    glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    glColor3f (1.0, 1.0, 1.0);
-
 
    GLUquadric *quadric;
    quadric = gluNewQuadric();
    //Sol
+   glEnable(GL_LIGHT4);
    glPushMatrix();
    glRotatef ((GLfloat) rot1, 0.0, 0.0, 1.0);
    glEnable(GL_TEXTURE_2D);
    glBindTexture(GL_TEXTURE_2D, solText);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    gluQuadricTexture(quadric, 1);
    gluSphere(quadric, 1.0 , 20.0, 20.0);
    glDisable(GL_TEXTURE_2D);
+   glDisable(GL_LIGHT4);
    glPopMatrix();
 
    //Planeta
@@ -201,6 +178,8 @@ void display(void)
 
    glEnable(GL_TEXTURE_2D);
    glBindTexture(GL_TEXTURE_2D, venText);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    gluQuadricTexture(quadric, 1);
@@ -217,6 +196,8 @@ void display(void)
 
    glEnable(GL_TEXTURE_2D);
    glBindTexture(GL_TEXTURE_2D, terText);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    gluQuadricTexture(quadric, 1);
@@ -228,6 +209,8 @@ void display(void)
 
    glEnable(GL_TEXTURE_2D);
    glBindTexture(GL_TEXTURE_2D, luaText);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    gluQuadricTexture(quadric, 1);
@@ -240,7 +223,6 @@ void display(void)
    glutSwapBuffers();
 
    glutTimerFunc(50, animate, 1);
-
 }
 
 
@@ -293,7 +275,7 @@ void MouseMove( int x, int y)
     movX = mouseX - mouseXp;
     movY = mouseY - mouseYp;
 
-    if(cx,cy <20 && cx,cy >-20 && !primeiroMov){
+    if(cx,cy <50 && cx,cy >-50 && !primeiroMov){
         cx-=(movX/50);
         cy+=(movY/50);
     }
@@ -312,6 +294,7 @@ void MyKeyboardFunc(unsigned char Key, int x, int y)
     {
     case 'r':
         cx = 0, cy = 0, zoom = 10, primeiroMov = 1;
+        glutPostRedisplay();
         break;
     case '1':
         camera = 1;
@@ -327,7 +310,13 @@ void MyKeyboardFunc(unsigned char Key, int x, int y)
         break;
     case '-':
         zoom += 0.5;
-
+        break;
+    case 's':
+        pare = 1;
+        break;
+    case 'd':
+        pare = 0;
+        break;
     case ' ':
     break;
     exit(1);
