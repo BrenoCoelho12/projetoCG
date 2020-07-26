@@ -12,6 +12,8 @@ float mouseX = 0, mouseY = 0, mouseXp = 0, mouseYp = 0, movX=0, movY=0, cx = 0, 
 bool primeiroMov = 1, pare = 0;
 GLsizei alt,larg;
 
+GLuint orbitaPlan, orbitaLuas;
+
 float d2r = 3.14159265 / 180.0;
 static float theta = 0.0, thetar = 0.0, phi = 0.0, phir = 0.0;
 
@@ -37,10 +39,33 @@ GLuint loadTexture(Image* image) {
 
 GLuint solText, terText, luaText, venText;
 
+
+static void DrawEllipse(float cx, float cy, float rx, float ry, int num_segments)
+{
+    float theta = 2 * 3.1415926 / float(num_segments);
+    float c = cosf(theta);//precalculate the sine and cosine
+    float s = sinf(theta);
+    float t;
+
+    float x = 1;//we start at angle = 0
+    float y = 0;
+
+    glBegin(GL_LINE_LOOP);
+    for(int ii = 0; ii < num_segments; ii++)
+    {
+        //apply radius and offset
+        glVertex2f(x * rx + cx, y * ry + cy);//output vertex
+
+        //apply the rotation matrix
+        t = x;
+        x = c * x - s * y;
+        y = s * t + c * y;
+    }
+    glEnd();
+}
+
 void init(void)
 {
-
-
     glClearColor (0.0, 0.0, 0.0, 0.0);
     glShadeModel (GL_SMOOTH);
 
@@ -88,6 +113,20 @@ void init(void)
    glEnable(GL_LIGHT2);
    glEnable(GL_LIGHT3);
    glEnable(GL_DEPTH_TEST);
+
+////////////////
+
+   orbitaPlan = glGenLists (1);
+   glNewList(orbitaPlan, GL_COMPILE);
+   DrawEllipse(1.0,0.0,3.5,3.0,50);
+   DrawEllipse(1.5,0.0,5.5,5.0,50);
+   glEndList();
+
+   orbitaLuas = glGenLists (1);
+   glNewList(orbitaLuas, GL_COMPILE);
+   DrawEllipse(0.0,0.0,1.0,1.0,20);
+   glEndList();
+////////////////
 }
 
 void animate(int n){
@@ -154,6 +193,11 @@ void display(void)
 
    GLUquadric *quadric;
    quadric = gluNewQuadric();
+
+
+   //orbitas
+   glCallList(orbitaPlan);
+
    //Sol
    glEnable(GL_LIGHT4);
    glPushMatrix();
@@ -172,7 +216,7 @@ void display(void)
 
    //Planeta
    glPushMatrix();
-   glTranslatef(0.9,0.0,0.0);
+   glTranslatef(1.0,0.0,0.0);
    glTranslatef (3.5*sin(thetar), 3.0*cos(thetar), 0.0f);
    glRotatef ((GLfloat) rot1, 0.0, 0.0, 1.0);
 
@@ -204,8 +248,10 @@ void display(void)
    gluSphere(quadric, 0.2 , 20.0, 20.0);
    glDisable(GL_TEXTURE_2D);
 
+   glCallList(orbitaLuas);
    glRotatef ((GLfloat) rot3, 0.0, 0.0, 1.0);
    glTranslatef (1.0, 0.0, 0.0);
+
 
    glEnable(GL_TEXTURE_2D);
    glBindTexture(GL_TEXTURE_2D, luaText);
