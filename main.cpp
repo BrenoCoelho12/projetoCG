@@ -5,6 +5,11 @@
 #include "imageloader.h"
 #include <math.h>
 #include <iostream>
+#include <vector>
+#include <fstream> 
+// #include <string>
+
+// std::ifstream texturas("texturas.txt");
 
 static int day1 = 1 ,day2 = 2 ,day3 = 3, camera = 1;
 float  rot1 = 0, rot2 = 0, rot3 = 0, zoom  = 10;
@@ -17,6 +22,35 @@ GLuint orbitaPlan, orbitaLuas;
 float d2r = 3.14159265 / 180.0;
 static float theta = 0.0, thetar = 0.0, phi = 0.0, phir = 0.0;
 
+static int window;
+static int menu_id;
+static int submenu_id;
+static int texture_submenu_id;
+
+char* current_text;
+
+int stop = 1;
+
+GLuint solText, terText, luaText, venText;
+
+struct planet{
+
+GLdouble radius;
+GLdouble day;
+GLfloat rotate;
+float vel;
+char* texture; // a implementar
+
+float m_theta;
+
+float pos;
+
+
+};
+
+std::vector<planet> planets;
+
+
 
 GLfloat lightDir0[] = { -1.0, 0.0, 0.0};
 GLfloat lightDir1[] = { 0.0, -1.0, 0.0};
@@ -28,6 +62,45 @@ static float spotExponent = 1.0; // Spotlight exponent = attenuation factor.
 GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 GLfloat mat_shininess[] = { 75.0 };
 
+void makePlanet(GLdouble radius=1, float vel = 1.0, char *texture = "/home/reynej/CompGraf/final/projetoCG/venus.bmp"){
+
+   
+  planets.push_back({radius, 1.0, 0, vel,texture,0, (2 * 3.1415926) /50});
+  //std::cout<<"aki!\n"<<radius<<" "<<vel<<"\n";
+}
+
+
+//A funcao menu recebe um int de acordo com o definido dentro d
+//glutCreateMenu()
+void menu(int num){
+  if(num == 0){
+    glutDestroyWindow(window);
+    exit(0);
+  }else if(num < 5){
+      makePlanet(((GLdouble) num)/5);
+  }else {
+     stop = !stop;
+  }
+  glutPostRedisplay();
+} 
+
+void createMenu(void){    
+    texture_submenu_id =  glutCreateMenu(menu);
+    glutAddMenuEntry("Red", 5);
+    glutAddMenuEntry("Blue", 6);
+    glutAddMenuEntry("Green", 7);
+    submenu_id = glutCreateMenu(menu);
+    glutAddMenuEntry("Small", 2);
+    glutAddMenuEntry("Medium", 3);
+    glutAddMenuEntry("Big", 4);
+    menu_id = glutCreateMenu(menu);
+    glutAddSubMenu("Texture", texture_submenu_id);
+    glutAddSubMenu("Planet", submenu_id);
+    glutAddMenuEntry("Stop/Resume", 8);
+    glutAddMenuEntry("Quit", 0);     
+    glutAttachMenu(GLUT_RIGHT_BUTTON);
+} 
+
 GLuint loadTexture(Image* image) {
 	//http://www.codeincodeblock.com/2012/05/simple-method-for-texture-mapping-on.html
 	GLuint textureId;
@@ -37,7 +110,6 @@ GLuint loadTexture(Image* image) {
 	return textureId;
 }
 
-GLuint solText, terText, luaText, venText;
 
 
 static void DrawEllipse(float cx, float cy, float rx, float ry, int num_segments)
@@ -64,24 +136,88 @@ static void DrawEllipse(float cx, float cy, float rx, float ry, int num_segments
     glEnd();
 }
 
+
+void updatePlanets(void){
+  GLUquadric *quadric;
+  quadric = gluNewQuadric();
+
+  
+  float i = 0.5;
+  float k = 0.0;
+
+ for(auto &planet : planets){
+
+    planet.m_theta = (planet.pos) * d2r*stop;
+
+     planet.rotate += planet.day;
+     if(planet.rotate > 360.0) planet.rotate = 0.0;
+
+   glPushMatrix();
+   glTranslatef(2.0 + i,0.0,0.0);
+   glTranslatef ((9.5 + k)*sin(planet.m_theta), (9.0+k)*cos(planet.m_theta), 0.0f);
+   glRotatef (planet.rotate, 0.0, 0.0, 1.0);
+
+   glEnable(GL_TEXTURE_2D);
+   glBindTexture(GL_TEXTURE_2D, venText);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   gluQuadricTexture(quadric, 1);
+   gluSphere(quadric, planet.radius , 20.0, 20.0);
+   glDisable(GL_TEXTURE_2D);
+
+   
+
+   glPopMatrix();
+
+   DrawEllipse(2.0 + i, 0.0, 9.5 + k,9.0 + k,50);
+
+   i += 0.5;
+   k += 2.5;
+
+   planet.pos += 2.5/k;
+
+ }
+
+}
+
 void init(void)
 {
     glClearColor (0.0, 0.0, 0.0, 0.0);
     glShadeModel (GL_SMOOTH);
 
+   std::vector<std::string> texturas_paths; // Isso irá pegar linha por linha as texturas em texturas.txt
+   //O caminho das texturas no txt deve ser: 
+   //   /caminho/para/lua.bmp
+   //   /caminho/para/sol.bmp
+   //   /caminho/para/terra.bmp
+   //   /caminho/para/venus.bmp
 
-    Image* lua= loadBMP("C://Users//lu_fe//Downloads//Untitled Folder 1//CG//proj//moon.bmp");
+    // std::getline(texturas, texturas_paths[0]);
+
+    // std::getline(texturas, texturas_paths[1]);
+    // std::getline(texturas, texturas_paths[2]);
+    // std::getline(texturas, texturas_paths[3]);
+
+    // for(auto linha : texturas_paths) std::cout<<linha<<"\n";
+
+    Image* lua= loadBMP("/home/reynej/CompGraf/final/projetoCG/moon.bmp");//Isso converte para C-style char e carrega bmp
+	Image* sol = loadBMP("/home/reynej/CompGraf/final/projetoCG/sun.bmp");
+	Image* ter = loadBMP("/home/reynej/CompGraf/final/projetoCG/earth.bmp");
+	Image* ven = loadBMP("/home/reynej/CompGraf/final/projetoCG/venus.bmp");
+
     luaText = loadTexture(lua);
+    solText = loadTexture(sol);
+    terText = loadTexture(ter);
+    venText = loadTexture(ven);
+
+
+    delete sol;
     delete lua;
-	Image* sol = loadBMP("C://Users//lu_fe//Downloads//Untitled Folder 1//CG//proj//sun.bmp");
-	solText = loadTexture(sol);
-	delete sol;
-	Image* ter = loadBMP("C://Users//lu_fe//Downloads//Untitled Folder 1//CG//proj//earth.bmp");
-	terText = loadTexture(ter);
 	delete ter;
-	Image* ven = loadBMP("C://Users//lu_fe//Downloads//Untitled Folder 1//CG//proj//venus.bmp");
-	venText = loadTexture(ven);
-	delete ven;
+    delete ven;
+
 
 ////////////////////
 	float lightAmb[] = { 0.0, 0.0, 0.0, 1.0 };
@@ -146,8 +282,8 @@ void animate(int n){
 void display(void)
 {
 
-   thetar = theta * d2r;
-   phir = phi*d2r;
+   thetar = theta * d2r*stop;
+   phir = phi*d2r*stop;
 
    glLoadIdentity();
    if(camera == 1){
@@ -265,7 +401,12 @@ void display(void)
 
    glPopMatrix();
 
+   
+
    glPopMatrix();
+
+   updatePlanets();
+
    glutSwapBuffers();
 
    glutTimerFunc(50, animate, 1);
@@ -325,7 +466,7 @@ void MouseMove( int x, int y)
         cx-=(movX/50);
         cy+=(movY/50);
     }
-    std::cout<<cx<<" - "<<cy<<std::endl;
+    //std::cout<<cx<<" - "<<cy<<std::endl;
 
     mouseXp = x;
     mouseYp = y;
@@ -398,7 +539,8 @@ int main(int argc, char** argv)
    glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
    glutInitWindowSize (500, 500);
    glutInitWindowPosition (100, 100);
-   glutCreateWindow (argv[0]);
+   window = glutCreateWindow("Nosso Lar");
+   createMenu();
    init ();
    glutDisplayFunc(display);
    glutReshapeFunc(reshape);
