@@ -6,7 +6,7 @@
 #include <math.h>
 #include <iostream>
 #include <vector>
-#include <fstream> 
+#include <fstream>
 // #include <string>
 
 // std::ifstream texturas("texturas.txt");
@@ -31,23 +31,32 @@ char* current_text;
 
 int stop = 1;
 
+char* texturas[] = {"/home/reynej/CompGraf/final/projetoCG/moon.bmp",  //1° Lua
+                    "/home/reynej/CompGraf/final/projetoCG/sun.bmp",   //2° Sol
+                    "/home/reynej/CompGraf/final/projetoCG/earth.bmp", //3° Terra
+                    "/home/reynej/CompGraf/final/projetoCG/venus.bmp" //4° Venus
+                       }; 
+
+char* curent_text = "/home/reynej/CompGraf/final/projetoCG/earth.bmp"; //A textura que os planetas extras serao desenhados
+
+
 GLuint solText, terText, luaText, venText;
 
 struct planet{
+
+    //Como eh armazenado os planetas extras
 
 GLdouble radius;
 GLdouble day;
 GLfloat rotate;
 float vel;
-char* texture; // a implementar
+GLuint texture; 
 
 float m_theta;
 
 float pos;
 
-
 };
-
 std::vector<planet> planets;
 
 
@@ -62,33 +71,44 @@ static float spotExponent = 1.0; // Spotlight exponent = attenuation factor.
 GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 GLfloat mat_shininess[] = { 75.0 };
 
-void makePlanet(GLdouble radius=1, float vel = 1.0, char *texture = "/home/reynej/CompGraf/final/projetoCG/venus.bmp"){
-
-   
-  planets.push_back({radius, 1.0, 0, vel,texture,0, (2 * 3.1415926) /50});
-  //std::cout<<"aki!\n"<<radius<<" "<<vel<<"\n";
+GLuint loadTexture(Image* image) {
+	//http://www.codeincodeblock.com/2012/05/simple-method-for-texture-mapping-on.html
+	GLuint textureId;
+	glGenTextures(1, &textureId);
+	glBindTexture(GL_TEXTURE_2D, textureId);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->width, image->height, 0, GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+	return textureId;
 }
 
+void makePlanet(GLdouble radius=1.0, char* texture = "/home/reynej/CompGraf/final/projetoCG/earth.bmp", 
+                float vel = 1.0){
 
-//A funcao menu recebe um int de acordo com o definido dentro d
-//glutCreateMenu()
+  Image* planet_text = loadBMP(texture);
+
+  planets.push_back({radius, 1.0, 0, vel,loadTexture(planet_text), 0, (2 * 3.1415926) /50});
+  
+  delete planet_text;
+}
+
 void menu(int num){
   if(num == 0){
     glutDestroyWindow(window);
     exit(0);
   }else if(num < 5){
-      makePlanet(((GLdouble) num)/5);
+      makePlanet(static_cast<GLdouble>(num)/10, curent_text); //  Cria um planeta com determinado raio
+      return; 
+  }else if (num < 8){
+     curent_text = texturas[num - 3]; //Carrega a textura a ser desenhada
   }else {
-     stop = !stop;
+    stop = !stop;
   }
   glutPostRedisplay();
 } 
 
 void createMenu(void){    
     texture_submenu_id =  glutCreateMenu(menu);
-    glutAddMenuEntry("Red", 5);
-    glutAddMenuEntry("Blue", 6);
-    glutAddMenuEntry("Green", 7);
+    glutAddMenuEntry("Earth", 5);
+    glutAddMenuEntry("Venus", 6);
     submenu_id = glutCreateMenu(menu);
     glutAddMenuEntry("Small", 2);
     glutAddMenuEntry("Medium", 3);
@@ -100,15 +120,6 @@ void createMenu(void){
     glutAddMenuEntry("Quit", 0);     
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 } 
-
-GLuint loadTexture(Image* image) {
-	//http://www.codeincodeblock.com/2012/05/simple-method-for-texture-mapping-on.html
-	GLuint textureId;
-	glGenTextures(1, &textureId);
-	glBindTexture(GL_TEXTURE_2D, textureId);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->width, image->height, 0, GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
-	return textureId;
-}
 
 
 
@@ -152,13 +163,15 @@ void updatePlanets(void){
      planet.rotate += planet.day;
      if(planet.rotate > 360.0) planet.rotate = 0.0;
 
+   DrawEllipse(2.0 + i, 0.0, 9.5 + k,9.0 + k,50);
+
    glPushMatrix();
    glTranslatef(2.0 + i,0.0,0.0);
    glTranslatef ((9.5 + k)*sin(planet.m_theta), (9.0+k)*cos(planet.m_theta), 0.0f);
    glRotatef (planet.rotate, 0.0, 0.0, 1.0);
 
    glEnable(GL_TEXTURE_2D);
-   glBindTexture(GL_TEXTURE_2D, venText);
+   glBindTexture(GL_TEXTURE_2D, planet.texture);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -171,16 +184,17 @@ void updatePlanets(void){
 
    glPopMatrix();
 
-   DrawEllipse(2.0 + i, 0.0, 9.5 + k,9.0 + k,50);
+   
 
    i += 0.5;
    k += 2.5;
 
-   planet.pos += 2.5/k;
+   planet.pos += 2.5/k; //Isso faz a velocidade reduzir proporcionalmente a distancia
 
  }
 
 }
+
 
 void init(void)
 {
@@ -188,7 +202,7 @@ void init(void)
     glShadeModel (GL_SMOOTH);
 
    std::vector<std::string> texturas_paths; // Isso irá pegar linha por linha as texturas em texturas.txt
-   //O caminho das texturas no txt deve ser: 
+   //O caminho das texturas no txt deve ser:
    //   /caminho/para/lua.bmp
    //   /caminho/para/sol.bmp
    //   /caminho/para/terra.bmp
@@ -202,16 +216,15 @@ void init(void)
 
     // for(auto linha : texturas_paths) std::cout<<linha<<"\n";
 
-    Image* lua= loadBMP("/home/reynej/CompGraf/final/projetoCG/moon.bmp");//Isso converte para C-style char e carrega bmp
-	Image* sol = loadBMP("/home/reynej/CompGraf/final/projetoCG/sun.bmp");
-	Image* ter = loadBMP("/home/reynej/CompGraf/final/projetoCG/earth.bmp");
-	Image* ven = loadBMP("/home/reynej/CompGraf/final/projetoCG/venus.bmp");
+    Image* lua= loadBMP(texturas[0]);
+	Image* sol = loadBMP(texturas[1]);
+	Image* ter = loadBMP(texturas[2]);
+	Image* ven = loadBMP(texturas[3]);
 
     luaText = loadTexture(lua);
     solText = loadTexture(sol);
     terText = loadTexture(ter);
     venText = loadTexture(ven);
-
 
     delete sol;
     delete lua;
@@ -279,6 +292,26 @@ void animate(int n){
     glutPostRedisplay();
 }
 
+void setLightParameters(GLfloat lightPos0[], GLfloat lightPos1[], GLfloat lightPos2[], GLfloat lightPos3[]){
+
+       glLightfv(GL_LIGHT0,GL_POSITION,lightPos0);
+       glLightfv(GL_LIGHT1,GL_POSITION,lightPos1);
+       glLightfv(GL_LIGHT2,GL_POSITION,lightPos2);
+       glLightfv(GL_LIGHT3,GL_POSITION,lightPos3);
+
+}
+
+void getTextureParameters(){
+
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+}
+
+
+
 void display(void)
 {
 
@@ -294,10 +327,7 @@ void display(void)
        GLfloat lightPos2[] = { -1.0, 0.0,0.0, 1.0}; // Spotlight position.
        GLfloat lightPos3[] = { 0.0, -1.0,0.0, 1.0}; // Spotlight position.
 
-       glLightfv(GL_LIGHT0,GL_POSITION,lightPos0);
-       glLightfv(GL_LIGHT1,GL_POSITION,lightPos1);
-       glLightfv(GL_LIGHT2,GL_POSITION,lightPos2);
-       glLightfv(GL_LIGHT3,GL_POSITION,lightPos3);
+       setLightParameters(lightPos0, lightPos1, lightPos2, lightPos3);
 
    }
    if(camera == 2){
@@ -307,10 +337,7 @@ void display(void)
        GLfloat lightPos2[] = {-1.0, 0.0, 0.0, 1.0}; // Spotlight position.
        GLfloat lightPos3[] = { 0.0, 0.0,-1.0, 1.0}; // Spotlight position.
 
-       glLightfv(GL_LIGHT0,GL_POSITION,lightPos0);
-       glLightfv(GL_LIGHT1,GL_POSITION,lightPos1);
-       glLightfv(GL_LIGHT2,GL_POSITION,lightPos2);
-       glLightfv(GL_LIGHT3,GL_POSITION,lightPos3);
+       setLightParameters(lightPos0, lightPos1, lightPos2, lightPos3);
    }
    if(camera == 3){
        gluLookAt (cx,zoom,cy,cx,0.0,cy, 0.0, 0.0 , 1.0);
@@ -319,10 +346,8 @@ void display(void)
        GLfloat lightPos2[] = {-1.0, 0.0, 0.0, 1.0}; // Spotlight position.
        GLfloat lightPos3[] = { 0.0, 0.0,-1.0, 1.0}; // Spotlight position.
 
-       glLightfv(GL_LIGHT0,GL_POSITION,lightPos0);
-       glLightfv(GL_LIGHT1,GL_POSITION,lightPos1);
-       glLightfv(GL_LIGHT2,GL_POSITION,lightPos2);
-       glLightfv(GL_LIGHT3,GL_POSITION,lightPos3);
+       setLightParameters(lightPos0, lightPos1, lightPos2, lightPos3);
+
    }
    glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    glColor3f (1.0, 1.0, 1.0);
@@ -340,10 +365,7 @@ void display(void)
    glRotatef ((GLfloat) rot1, 0.0, 0.0, 1.0);
    glEnable(GL_TEXTURE_2D);
    glBindTexture(GL_TEXTURE_2D, solText);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   getTextureParameters();
    gluQuadricTexture(quadric, 1);
    gluSphere(quadric, 1.0 , 20.0, 20.0);
    glDisable(GL_TEXTURE_2D);
@@ -358,10 +380,7 @@ void display(void)
 
    glEnable(GL_TEXTURE_2D);
    glBindTexture(GL_TEXTURE_2D, venText);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   getTextureParameters();
    gluQuadricTexture(quadric, 1);
    gluSphere(quadric, 0.2 , 20.0, 20.0);
    glDisable(GL_TEXTURE_2D);
@@ -376,10 +395,7 @@ void display(void)
 
    glEnable(GL_TEXTURE_2D);
    glBindTexture(GL_TEXTURE_2D, terText);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   getTextureParameters();
    gluQuadricTexture(quadric, 1);
    gluSphere(quadric, 0.2 , 20.0, 20.0);
    glDisable(GL_TEXTURE_2D);
@@ -391,17 +407,14 @@ void display(void)
 
    glEnable(GL_TEXTURE_2D);
    glBindTexture(GL_TEXTURE_2D, luaText);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   getTextureParameters();
    gluQuadricTexture(quadric, 1);
    gluSphere(quadric, 0.05 , 20.0, 20.0);
    glDisable(GL_TEXTURE_2D);
 
    glPopMatrix();
 
-   
+
 
    glPopMatrix();
 
