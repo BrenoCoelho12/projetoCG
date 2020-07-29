@@ -189,7 +189,7 @@ void updatePlanets(void){
    i += 0.5;
    k += 2.5;
 
-   planet.pos += 2.5/k; //Isso faz a velocidade reduzir proporcionalmente a distancia
+   if(!pare) planet.pos += 2.5/k; //Isso faz a velocidade reduzir proporcionalmente a distancia
 
  }
 
