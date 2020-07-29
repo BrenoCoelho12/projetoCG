@@ -34,22 +34,23 @@ float planTilt = 0.0;
 int stop = 1;
 
 char* texturas[] = {"C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\sun.bmp",  //1° Sol
-                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\moon.bmp",   //2° Lua/Mercurio
-                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\earth.bmp", //3° Terra
+                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\moon.bmp",   //2° Lua
+                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\mercury.bmp",   //3° Mercurio
                     "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\venus.bmp", //4° Venus
-                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\mars.bmp", //5° Marte
-                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\jupiter.bmp", //6° Jupiter
-                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\saturn.bmp", //7° Saturno
-                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\uranus.bmp", //8° Urano
-                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\neptune.bmp", //9° Netuno
-                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\pluto.bmp", //10° Plutao
-
+                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\earth.bmp", //5° Terra
+                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\mars.bmp", //6° Marte
+                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\jupiter.bmp", //7° Jupiter
+                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\saturn.bmp", //8° Saturno
+                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\uranus.bmp", //9° Urano
+                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\neptune.bmp", //10° Netuno
+                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\pluto.bmp", //11° Plutao
+                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\ring.bmp", //12° aneis
                        };
 
 char* curent_text = "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\earth.bmp"; //A textura que os planetas extras serao desenhados
 
 
-GLuint solText, terText, luaText, venText, marText, jupText, satText, uraText, netText, pluText;
+GLuint solText, merText, terText, luaText, venText, marText, jupText, satText, uraText, netText, pluText, ringText;
 
 struct planet{
 
@@ -106,10 +107,10 @@ void menu(int num){
       makePlanet(static_cast<GLdouble>(num)/10, curent_text, add_ring, planTilt); //  Cria um planeta com determinado raio
       return;
   }else if (num < 15){
-     curent_text = texturas[num - 5]; //Carrega a textura a ser desenhada
+     curent_text = texturas[num - 4]; //Carrega a textura a ser desenhada
      add_ring = 0;
-     planTilt = num/5;
-     if(num<14 && num >10){
+     planTilt = 5*num;
+     if(num == 11){
         add_ring = 1;
      }
   }else {
@@ -121,8 +122,8 @@ void menu(int num){
 void createMenu(void){
     texture_submenu_id =  glutCreateMenu(menu);
     glutAddMenuEntry("Mercury",6);
-    glutAddMenuEntry("Earth", 7);
-    glutAddMenuEntry("Venus", 8);
+    glutAddMenuEntry("Venus", 7);
+    glutAddMenuEntry("Earth", 8);
     glutAddMenuEntry("Mars", 9);
     glutAddMenuEntry("Jupiter", 10);
     glutAddMenuEntry("Saturn", 11);
@@ -201,10 +202,17 @@ void updatePlanets(void){
    gluQuadricTexture(quadric, 1);
    gluSphere(quadric, planet.radius , 20.0, 20.0);
    glDisable(GL_TEXTURE_2D);
-   glRotatef(planet.tilt,1.0,0.0,0.0);
    if(planet.ring){
-       gluDisk(quadric, 0.8,1.0,50,2);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, ringText);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        gluDisk(quadric, 0.6,1.0,50,2);
+        glDisable(GL_TEXTURE_2D);
    }
+    glRotatef(planet.tilt,1.0,0.0,0.0);
 
 
 
@@ -244,37 +252,43 @@ void init(void)
 
 	Image* sol = loadBMP(texturas[0]);
     Image* lua = loadBMP(texturas[1]);
-	Image* ter = loadBMP(texturas[2]);
+	Image* mer = loadBMP(texturas[2]);
 	Image* ven = loadBMP(texturas[3]);
-	Image* mar = loadBMP(texturas[4]);
-	Image* jup = loadBMP(texturas[5]);
-	Image* sat = loadBMP(texturas[6]);
-	Image* ura = loadBMP(texturas[7]);
-	Image* net = loadBMP(texturas[8]);
-	Image* plu = loadBMP(texturas[9]);
+	Image* ter = loadBMP(texturas[4]);
+	Image* mar = loadBMP(texturas[5]);
+	Image* jup = loadBMP(texturas[6]);
+	Image* sat = loadBMP(texturas[7]);
+	Image* ura = loadBMP(texturas[8]);
+	Image* net = loadBMP(texturas[9]);
+	Image* plu = loadBMP(texturas[10]);
+	Image* rng = loadBMP(texturas[11]);
+
 
     luaText = loadTexture(lua);
     solText = loadTexture(sol);
-    terText = loadTexture(ter);
+    merText = loadTexture(mer);
     venText = loadTexture(ven);
+    terText = loadTexture(ter);
     marText = loadTexture(mar);
     jupText = loadTexture(jup);
     satText = loadTexture(sat);
     uraText = loadTexture(ura);
     netText = loadTexture(net);
     pluText = loadTexture(plu);
+    ringText= loadTexture(rng);
 
     delete sol;
     delete lua;
-	delete ter;
+    delete mer;
     delete ven;
+	delete ter;
     delete mar;
     delete jup;
     delete sat;
     delete ura;
     delete net;
     delete plu;
-
+    delete rng;
 
 ////////////////////
 	float lightAmb[] = { 0.0, 0.0, 0.0, 1.0 };
