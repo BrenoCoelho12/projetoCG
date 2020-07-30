@@ -19,7 +19,7 @@ GLsizei alt,larg;
 
 GLuint orbitaPlan, orbitaLuas;
 
-float d2r = 3.14159265 / 180.0;
+float d2r = 3.14159265 / 180.0; //grau para radiano
 static float theta1 = 0.0, thetar1 = 0.0, theta2 = 0.0, thetar2 = 0.0, theta3 = 0.0, thetar3 = 0.0;
 
 static int window;
@@ -55,7 +55,7 @@ GLuint solText, merText, terText, luaText, venText, marText, jupText, satText, u
 
 struct planet{
 
-    //Como eh armazenado os planetas extras
+//Como os planetas extras sao armazenados
 
 GLdouble radius;
 GLdouble day;
@@ -70,17 +70,19 @@ float tilt;
 std::vector<planet> planets;
 
 
-
+//direcao das luzes que "saem" do sol
 GLfloat lightDir0[] = { -1.0, 0.0, 0.0};
 GLfloat lightDir1[] = { 0.0, -1.0, 0.0};
 GLfloat lightDir2[] = { 1.0, 0.0, 0.0};
 GLfloat lightDir3[] = { 0.0, 1.0, 0.0};
 
-static float spotAngle = 90; // Spotlight cone half-angle.
-static float spotExponent = 1.0; // Spotlight exponent = attenuation factor.
+static float anguloLuz = 90; // Cone de luz
+static float atenuacao = 1.0; // fator de atenuacao
 GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 GLfloat mat_shininess[] = { 75.0 };
 
+
+//funcao para carregar a textura da imagem bmp para o opengl
 GLuint loadTexture(Image* image) {
 	//http://www.codeincodeblock.com/2012/05/simple-method-for-texture-mapping-on.html
 	GLuint textureId;
@@ -90,6 +92,7 @@ GLuint loadTexture(Image* image) {
 	return textureId;
 }
 
+//criar estrutura dos planetas adicionais
 void makePlanet(GLdouble radius=1.0, char* texture = "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\earth.bmp",
                 float vel = 1.0, float _tilt = 0.0){
 
@@ -100,26 +103,28 @@ void makePlanet(GLdouble radius=1.0, char* texture = "C:\\Users\\lu_fe\\Download
   delete planet_text;
 }
 
+//usa os numeros gerados pelo createMenu para realizar tarefas
 void menu(int num){
   if(num == 0){
     glutDestroyWindow(window);
     exit(0);
   }else if(num < 6){
-      makePlanet(static_cast<GLdouble>(num)/10, curent_text, add_ring, planTilt); //  Cria um planeta com determinado raio
+      makePlanet(static_cast<GLdouble>(num)/10, curent_text, add_ring, planTilt); //  Cria um planeta com determinado raio, presenca de anel e inclinacao
       return;
   }else if (num < 15){
      curent_text = texturas[num - 4]; //Carrega a textura a ser desenhada
-     add_ring = 0;
-     planTilt = 5*num;
+     add_ring = 0;          //anel desligado por default
+     planTilt = 5*num;      //inclinacao progressiva quanto mairo numero de planetas
      if(num == 11){
-        add_ring = 1;
+        add_ring = 1;       //somente saturno com anel
      }
   }else {
-    stop = !stop;
+    stop = !stop;           //paraliza animacao
   }
   glutPostRedisplay();
 }
 
+//menu de geracao dos planetas. Primeiro escolhe textura, depois cria o planeta na determinacao do tamanho
 void createMenu(void){
     texture_submenu_id =  glutCreateMenu(menu);
     glutAddMenuEntry("Mercury",6);
@@ -146,24 +151,24 @@ void createMenu(void){
 }
 
 
-
+//Desenho das trajetorias elipticas das orbitas, translacao eliptica feita por combinacao de seno e cosseno especifica
 static void DrawEllipse(float cx, float cy, float rx, float ry, int num_segments)
 {
     float theta = 2 * 3.1415926 / float(num_segments);
-    float c = cosf(theta);//precalculate the sine and cosine
+    float c = cosf(theta);//pre-calcula seno e cosseno do angulo
     float s = sinf(theta);
     float t;
 
-    float x = 1;//we start at angle = 0
+    float x = 1;//angulo inicial de 0 graus
     float y = 0;
 
     glBegin(GL_LINE_LOOP);
     for(int ii = 0; ii < num_segments; ii++)
     {
-        //apply radius and offset
-        glVertex2f(x * rx + cx, y * ry + cy);//output vertex
+        //aplica raio e offset
+        glVertex2f(x * rx + cx, y * ry + cy);//vertex de saida
 
-        //apply the rotation matrix
+        //aplica matriz de rotacao
         t = x;
         x = c * x - s * y;
         y = s * t + c * y;
@@ -171,7 +176,7 @@ static void DrawEllipse(float cx, float cy, float rx, float ry, int num_segments
     glEnd();
 }
 
-
+//onde desenho dos planetas extras ocorre
 void updatePlanets(void){
   GLUquadric *quadric;
   quadric = gluNewQuadric();
@@ -182,28 +187,31 @@ void updatePlanets(void){
 
  for(auto &planet : planets){
 
-    planet.m_theta = (planet.pos) * d2r*stop;
+    planet.m_theta = (planet.pos) * d2r*stop;  //posicao do planeta, grau pra radiano e paralizacao da animacao
 
-     planet.rotate += planet.day;
+     planet.rotate += planet.day;              //velocidade de rotacao
      if(planet.rotate > 360.0) planet.rotate = 0.0;
 
-   DrawEllipse(2.0 + i, 0.0, 9.5 + k,9.0 + k,50);
+   DrawEllipse(2.0 + i, 0.0, 9.5 + k,9.0 + k,50); //desenho da orbita
 
    glPushMatrix();
-   glTranslatef(2.0 + i,0.0,0.0);
-   glTranslatef ((9.5 + k)*sin(planet.m_theta), (9.0+k)*cos(planet.m_theta), 0.0f);
-   glRotatef (planet.rotate, 0.0, 0.0, 1.0);
+   glTranslatef(2.0 + i,0.0,0.0);              //desloca orbita do planeta do centro da elipse, se aproximando de um dos seus focos
+   glTranslatef ((9.5 + k)*sin(planet.m_theta), (9.0+k)*cos(planet.m_theta), 0.0f);  //translacao eliptica
+   glRotatef (planet.rotate, 0.0, 0.0, 1.0);     //rotacao do planeta
 
+   //aplicacao da textura do planeta
    glEnable(GL_TEXTURE_2D);
-   glBindTexture(GL_TEXTURE_2D, planet.texture);
+   glBindTexture(GL_TEXTURE_2D, planet.texture);  //textura especifica do planeta criado
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    gluQuadricTexture(quadric, 1);
-   gluSphere(quadric, planet.radius , 20.0, 20.0);
+   glRotatef(planet.tilt,1.0,0.0,0.0);  //inclinacao do planeta
+   gluSphere(quadric, planet.radius , 20.0, 20.0);   //desenho do planeta
+   glRotatef(-planet.tilt,1.0,0.0,0.0); //desfazer inclinacao para colocar possivel anel
    glDisable(GL_TEXTURE_2D);
-   if(planet.ring){
+   if(planet.ring){ //se planeta tiver anel
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, ringText);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -213,10 +221,6 @@ void updatePlanets(void){
         gluDisk(quadric, 0.6,1.0,50,2);
         glDisable(GL_TEXTURE_2D);
    }
-    glRotatef(planet.tilt,1.0,0.0,0.0);
-
-
-
    glPopMatrix();
 
 
@@ -251,6 +255,8 @@ void init(void)
 
     // for(auto linha : texturas_paths) std::cout<<linha<<"\n";
 
+
+    //Carrega texturas
 	Image* sol = loadBMP(texturas[0]);
     Image* lua = loadBMP(texturas[1]);
 	Image* mer = loadBMP(texturas[2]);
@@ -295,16 +301,18 @@ void init(void)
     delete sta;
 
 ////////////////////
-	float lightAmb[] = { 0.0, 0.0, 0.0, 1.0 };
-	float lightDifAndSpec[] = { 0.5, 0.5, 0.5, 1.0 };
+	float luzAmb[] = { 0.0, 0.0, 0.0, 1.0 };
+	float luzDifEspec[] = { 0.5, 0.5, 0.5, 1.0 };
 	float globAmb[] = { 0.5, 0.5, 0.5, 1.0 };
 
-	glLightfv((GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4), GL_AMBIENT, lightAmb);
-	glLightfv((GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4), GL_DIFFUSE, lightDifAndSpec);
-	glLightfv((GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4), GL_SPECULAR, lightDifAndSpec);
-	glLightf((GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4),GL_SPOT_CUTOFF, spotAngle);
-	glLightf((GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4),GL_SPOT_EXPONENT, spotExponent);
+	//Todas as 5 luzes com mesmos parametross
+	glLightfv((GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4), GL_AMBIENT, luzAmb);
+	glLightfv((GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4), GL_DIFFUSE, luzDifEspec);
+	glLightfv((GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4), GL_SPECULAR, luzDifEspec);
+	glLightf((GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4),GL_SPOT_CUTOFF, anguloLuz);
+	glLightf((GL_LIGHT0,GL_LIGHT1,GL_LIGHT2,GL_LIGHT3,GL_LIGHT4),GL_SPOT_EXPONENT, atenuacao);
 
+	//Luzes "emitidas" pelo sol tem suas direcoes definidas
    glLightfv(GL_LIGHT0,GL_SPOT_DIRECTION,lightDir0);
    glLightfv(GL_LIGHT1,GL_SPOT_DIRECTION,lightDir1);
    glLightfv(GL_LIGHT2,GL_SPOT_DIRECTION,lightDir2);
@@ -323,10 +331,11 @@ void init(void)
    glEnable(GL_LIGHT1);
    glEnable(GL_LIGHT2);
    glEnable(GL_LIGHT3);
-   glEnable(GL_DEPTH_TEST);
+   glEnable(GL_LIGHT4);
+   glEnable(GL_DEPTH_TEST);  //z-buffer
 
 ///////////////
-
+//Desenho das orbitas dos planetas pre estabelecidos
    orbitaPlan  = glGenLists (1);
    glNewList(orbitaPlan, GL_COMPILE);
    DrawEllipse(0.5,0.0,2.0,1.5,50);
@@ -334,6 +343,7 @@ void init(void)
    DrawEllipse(1.5,0.0,5.5,5.0,50);
    glEndList();
 
+   //Desnho da orbita lunar
    orbitaLuas = glGenLists (1);
    glNewList(orbitaLuas, GL_COMPILE);
    DrawEllipse(0.0,0.0,1.0,1.0,20);
@@ -341,6 +351,8 @@ void init(void)
 ////////////////
 }
 
+
+//animacao ocorre em intervalo "x" de tempo. atualiza angulo de rotacao e angulo de translacao dos planetas pre estabelecidos
 void animate(int n){
 	if(!pare){
 	rot1 += day1;
@@ -356,6 +368,7 @@ void animate(int n){
     glutPostRedisplay();
 }
 
+//Como o "olho" da camera muda, a posicao da luz precisa mudar de acordo
 void setLightParameters(GLfloat lightPos0[], GLfloat lightPos1[], GLfloat lightPos2[], GLfloat lightPos3[]){
 
        glLightfv(GL_LIGHT0,GL_POSITION,lightPos0);
@@ -365,6 +378,7 @@ void setLightParameters(GLfloat lightPos0[], GLfloat lightPos1[], GLfloat lightP
 
 }
 
+//imagem de fundo deve ser estampada em um "quadrado" no fundo do desenho. Z-buffer deve ser desligado para nao ocorrer conflitos na hora do desenho
 void setBackground(GLint x, GLint y, GLint z,GLint w){
        glDisable(GL_DEPTH_TEST);
        glDisable(GL_LIGHTING);
@@ -376,7 +390,7 @@ void setBackground(GLint x, GLint y, GLint z,GLint w){
 	   glBegin(GL_POLYGON);
 	   glTexCoord2f(0.0, 0.0); glVertex3i(-x,-y, -z);
 	   glTexCoord2f(1.0, 0.0); glVertex3i(x, -y, -z);
-	   glTexCoord2f(1.0, 1.0); glVertex3i(x,  y*w, -z*w);
+	   glTexCoord2f(1.0, 1.0); glVertex3i(x,  y*w, -z*w);  //parametro w serve para inverter sinais quando necessario
 	   glTexCoord2f(0.0, 1.0); glVertex3i(-x, y*w, -z*w);
 	   glEnd();
        glDisable(GL_TEXTURE_2D);
@@ -398,7 +412,7 @@ void getTextureParameters(){
 
 void display(void)
 {
-
+   //atualizacao do angulo em radiano da translacao do planeta
    thetar1 = theta1*d2r*stop;
    thetar2 = theta2*d2r*stop;
    thetar3 = theta3*d2r*stop;
@@ -406,6 +420,8 @@ void display(void)
    glColor3f (1.0, 1.0, 1.0);
 
    glLoadIdentity();
+
+   //cada posicao de camera muda a posicao do olho, de onde ta apontando e do vetor Up
    if(camera == 1){
        gluLookAt (cx, cy, zoom, cx, cy , 0.0, 0.0, 1.0, 0.0);
 
@@ -414,6 +430,7 @@ void display(void)
        GLfloat lightPos2[] = { -1.0, 0.0,0.0, 1.0}; // Spotlight position.
        GLfloat lightPos3[] = { 0.0, -1.0,0.0, 1.0}; // Spotlight position.
 
+       //ajusta luzes e background
        setLightParameters(lightPos0, lightPos1, lightPos2, lightPos3);
 
        setBackground(100,100,10,1);
@@ -427,7 +444,7 @@ void display(void)
 
        setLightParameters(lightPos0, lightPos1, lightPos2, lightPos3);
 
-       setBackground(100,10,100,-1);
+       setBackground(400,80,400,-1);
    }
    if(camera == 3){
        gluLookAt (cx,zoom,cy,cx,0.0,cy, 0.0, 0.0 , 1.0);
@@ -438,19 +455,19 @@ void display(void)
 
        setLightParameters(lightPos0, lightPos1, lightPos2, lightPos3);
 
-       setBackground(100,10,100,-1);
+       setBackground(400,80,400,-1);
    }
 
    GLUquadric *quadric;
    quadric = gluNewQuadric();
 
-   //orbitas
+   //orbitas sao desenhadas
    glCallList(orbitaPlan);
 
 
    //Sol
 
-   glEnable(GL_LIGHT4);
+   glEnable(GL_LIGHT4);  //luz exclusiva do sol
    glPushMatrix();
    glRotatef ((GLfloat) rot1, 0.0, 0.0, 1.0);
    glEnable(GL_TEXTURE_2D);
@@ -464,18 +481,18 @@ void display(void)
 
    //Mercurio
    glPushMatrix();
-   glTranslatef(0.5,0.0,0.0);
-   glTranslatef (2.0*sin(thetar1), 1.5*cos(thetar1), 0.0f);
-   glRotatef ((GLfloat) rot1, 0.0, 0.0, 1.0);
+   glTranslatef(0.5,0.0,0.0);  //offset
+   glTranslatef (2.0*sin(thetar1), 1.5*cos(thetar1), 0.0f); //elipse de altura 2.0 e largura 1.5
+   glRotatef ((GLfloat) rot1, 0.0, 0.0, 1.0); //rotacao do planeta
 
    glEnable(GL_TEXTURE_2D);
-   glBindTexture(GL_TEXTURE_2D, luaText);
+   glBindTexture(GL_TEXTURE_2D, merText);
    getTextureParameters();
    gluQuadricTexture(quadric, 1);
    gluSphere(quadric, 0.2 , 20.0, 20.0);
    glDisable(GL_TEXTURE_2D);
 
-   glPopMatrix();
+   glPopMatrix();  //reseta matriz para nao interferir com outros planetas (caso contrario, planeta orbitariam outros planetas)
 
 
 
@@ -507,6 +524,7 @@ void display(void)
    gluSphere(quadric, 0.2 , 20.0, 20.0);
    glDisable(GL_TEXTURE_2D);
 
+   //nao ocorre PopMatrix pois lua deve orbitar o planeta Terra
    glCallList(orbitaLuas);
    glRotatef ((GLfloat) rot3, 0.0, 0.0, 1.0);
    glTranslatef (1.0, 0.0, 0.0);
@@ -521,15 +539,13 @@ void display(void)
 
    glPopMatrix();
 
+   glPopMatrix();  //reseta para matriz original
 
-
-   glPopMatrix();
-
-   updatePlanets();
+   updatePlanets(); //desenha todos os planetas extras
 
    glutSwapBuffers();
 
-   glutTimerFunc(50, animate, 1);
+   glutTimerFunc(50, animate, 1); //atualiza a cada 50ms
 }
 
 
@@ -540,13 +556,13 @@ void reshape (int w, int h)
    glViewport (0, 0, (GLsizei) w, (GLsizei) h);
    glMatrixMode (GL_PROJECTION);
    glLoadIdentity ();
-   gluPerspective(90.0, (GLfloat) w/(GLfloat) h, 0.1, 100.0);
+   gluPerspective(90.0, (GLfloat) w/(GLfloat) h, 0.1, 1000.0);
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
 }
 
 
-
+//Responsavel pelo zoom
 void mouseWheel(int wheel, int direction, int x, int y)
 {
 	if (direction < 0 && zoom < 60){
@@ -563,11 +579,12 @@ void mouseWheel(int wheel, int direction, int x, int y)
 }
 
 
-
+//movimentacao para cima-baixo-esquerda-direita
 void MouseMove( int x, int y)
 {
-
-    if(primeiroMov){
+    //para nao pegar valores muito dispares ao clicar (pegar valores de cliques passados)
+    //usou-se booleano que identifica se eh o primeiro arrasto do mouse naquela interacao
+    if(primeiroMov){   //zera movimentacoes de camera
         mouseX = x;
         mouseY = y;
         mouseXp = x;
@@ -577,21 +594,21 @@ void MouseMove( int x, int y)
         primeiroMov = 0;
         return;
     }
-    mouseX = x;
+    mouseX = x; //atualiza para x e y novos
     mouseY = y;
-    movX = mouseX - mouseXp;
+    movX = mouseX - mouseXp;  //diferenca determina a quantidade movimentada pela camera
     movY = mouseY - mouseYp;
 
-    if(cx,cy <50 && cx,cy >-50 && !primeiroMov){
-        cx-=(movX/50);
+    if(cx,cy <50 && cx,cy >-50 && !primeiroMov){ //se nao for primeira interacao, atualiza centros
+        cx-=(movX/50);  // foi escolhido como fator de atenuacao da sensibilidade
         cy+=(movY/50);
     }
     //std::cout<<cx<<" - "<<cy<<std::endl;
 
-    mouseXp = x;
+    mouseXp = x;  //atualiza novo x e y para a posicao passada
     mouseYp = y;
 
-    primeiroMov = 1;
+    primeiroMov = 1;  //reseta movimento
 	glutPostRedisplay();
 }
 
@@ -599,11 +616,11 @@ void MyKeyboardFunc(unsigned char Key, int x, int y)
 {
     switch(Key)
     {
-    case 'r':
+    case 'r':  //reseta camera
         cx = 0, cy = 0, zoom = 10, primeiroMov = 1;
         glutPostRedisplay();
         break;
-    case '1':
+    case '1': //muda posicao inicial da camera
         camera = 1;
         break;
     case '2':
@@ -612,16 +629,16 @@ void MyKeyboardFunc(unsigned char Key, int x, int y)
     case '3':
         camera = 3;
         break;
-    case '+':
+    case '+': //zoom + ou -
         zoom -= 0.5;
         break;
     case '-':
         zoom += 0.5;
         break;
-    case 's':
+    case 's': //paraliza animacao
         pare = 1;
         break;
-    case 'd':
+    case 'd': //continua
         pare = 0;
         break;
     case ' ':
@@ -631,6 +648,7 @@ break;
 };
 }
 
+//movimentacao do centro da camera usando setas do teclado
 void SpecialKeyboard(int key, int x, int y)
 {
    switch (key) {
