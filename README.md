@@ -21,3 +21,9 @@ Caso esteja no Linux, com a biblioteca OpenGL e GLUT, execute o seguinte comando
 
 ![Tela do programa](solar.png)
 
+made with ♥ by:
+- DIEGO RODRIGUES MEDEIROS
+- EDSON BRENO COELHO NEVES
+- LUIZ FERNANDO CARBONERA FILHO
+- REYNE JASSON MARCELINO DE BRITO
+
