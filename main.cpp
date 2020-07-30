@@ -45,12 +45,13 @@ char* texturas[] = {"C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-ma
                     "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\neptune.bmp", //10° Netuno
                     "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\pluto.bmp", //11° Plutao
                     "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\ring.bmp", //12° aneis
+                    "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\stars.bmp", //13° estrelas
                        };
 
 char* curent_text = "C:\\Users\\lu_fe\\Downloads\\projetoCG-master\\projetoCG-master\\earth.bmp"; //A textura que os planetas extras serao desenhados
 
 
-GLuint solText, merText, terText, luaText, venText, marText, jupText, satText, uraText, netText, pluText, ringText;
+GLuint solText, merText, terText, luaText, venText, marText, jupText, satText, uraText, netText, pluText, ringText,staText;
 
 struct planet{
 
@@ -262,6 +263,7 @@ void init(void)
 	Image* net = loadBMP(texturas[9]);
 	Image* plu = loadBMP(texturas[10]);
 	Image* rng = loadBMP(texturas[11]);
+	Image* sta = loadBMP(texturas[12]);
 
 
     luaText = loadTexture(lua);
@@ -276,6 +278,7 @@ void init(void)
     netText = loadTexture(net);
     pluText = loadTexture(plu);
     ringText= loadTexture(rng);
+    staText= loadTexture(sta);
 
     delete sol;
     delete lua;
@@ -289,6 +292,7 @@ void init(void)
     delete net;
     delete plu;
     delete rng;
+    delete sta;
 
 ////////////////////
 	float lightAmb[] = { 0.0, 0.0, 0.0, 1.0 };
@@ -361,6 +365,26 @@ void setLightParameters(GLfloat lightPos0[], GLfloat lightPos1[], GLfloat lightP
 
 }
 
+void setBackground(GLint x, GLint y, GLint z,GLint w){
+       glDisable(GL_DEPTH_TEST);
+       glDisable(GL_LIGHTING);
+       glDepthMask(GL_FALSE);
+       glEnable(GL_TEXTURE_2D);
+       glBindTexture(GL_TEXTURE_2D, staText);
+	   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	   glBegin(GL_POLYGON);
+	   glTexCoord2f(0.0, 0.0); glVertex3i(-x,-y, -z);
+	   glTexCoord2f(1.0, 0.0); glVertex3i(x, -y, -z);
+	   glTexCoord2f(1.0, 1.0); glVertex3i(x,  y*w, -z*w);
+	   glTexCoord2f(0.0, 1.0); glVertex3i(-x, y*w, -z*w);
+	   glEnd();
+       glDisable(GL_TEXTURE_2D);
+	   glDepthMask(GL_TRUE);
+       glEnable(GL_DEPTH_TEST);
+       glEnable(GL_LIGHTING);
+}
+
 void getTextureParameters(){
 
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -378,11 +402,12 @@ void display(void)
    thetar1 = theta1*d2r*stop;
    thetar2 = theta2*d2r*stop;
    thetar3 = theta3*d2r*stop;
-
+   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   glColor3f (1.0, 1.0, 1.0);
 
    glLoadIdentity();
    if(camera == 1){
-        gluLookAt (cx, cy, zoom, cx, cy , 0.0, 0.0, 1.0, 0.0);
+       gluLookAt (cx, cy, zoom, cx, cy , 0.0, 0.0, 1.0, 0.0);
 
        GLfloat lightPos0[] = { 1.0, 0.0, 0.0, 1.0}; // Spotlight position.
        GLfloat lightPos1[] = { 0.0, 1.0, 0.0, 1.0}; // Spotlight position.
@@ -391,6 +416,7 @@ void display(void)
 
        setLightParameters(lightPos0, lightPos1, lightPos2, lightPos3);
 
+       setBackground(100,100,10,1);
    }
    if(camera == 2){
        gluLookAt (cx, zoom, cy +10, cx, 0.0,cy , 0.0, 0.0, 1.0);
@@ -400,6 +426,8 @@ void display(void)
        GLfloat lightPos3[] = { 0.0, 0.0,-1.0, 1.0}; // Spotlight position.
 
        setLightParameters(lightPos0, lightPos1, lightPos2, lightPos3);
+
+       setBackground(100,10,100,-1);
    }
    if(camera == 3){
        gluLookAt (cx,zoom,cy,cx,0.0,cy, 0.0, 0.0 , 1.0);
@@ -410,18 +438,18 @@ void display(void)
 
        setLightParameters(lightPos0, lightPos1, lightPos2, lightPos3);
 
+       setBackground(100,10,100,-1);
    }
-   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-   glColor3f (1.0, 1.0, 1.0);
 
    GLUquadric *quadric;
    quadric = gluNewQuadric();
 
-
    //orbitas
    glCallList(orbitaPlan);
 
+
    //Sol
+
    glEnable(GL_LIGHT4);
    glPushMatrix();
    glRotatef ((GLfloat) rot1, 0.0, 0.0, 1.0);
@@ -512,7 +540,7 @@ void reshape (int w, int h)
    glViewport (0, 0, (GLsizei) w, (GLsizei) h);
    glMatrixMode (GL_PROJECTION);
    glLoadIdentity ();
-   gluPerspective(90.0, (GLfloat) w/(GLfloat) h, 0.1, 80.0);
+   gluPerspective(90.0, (GLfloat) w/(GLfloat) h, 0.1, 100.0);
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
 }
