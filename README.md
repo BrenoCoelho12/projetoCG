@@ -11,7 +11,7 @@ As texturas devem ser formato bitmap(.bmp) e devem ser especificadas na variavel
 
 ## Funcionalidades
 
-- É possivel interagir com o programa utilizando o scrool do mouse para controlar o zoom ou utilizar as teclas ` + ` e `-`, utilizando as teclas `1, 2, 3` é possível alternar as visões do sistema solar e utilizando as teclas `d` e `s` o sistema encerra/resume todos os movimentos.
+- É possivel interagir com o programa utilizando o scrool do mouse para controlar o zoom ou utilizar as teclas ` + ` e `-`, utilizando as teclas `1, 2, 3` é possível alternar as visões do sistema solar e utilizando as teclas `d` e `s` o sistema encerra/resume todos os movimentos. Caso deseje reverter todos os movimentos realizados, 'r' reseta a camera para a posição inicial.
 - É possivel arrastar o sistema segurando o botão esquerdo do mouse e o abrir o menu com o botão direito.
 - Os menus podem criar um planeta com textura escolhida, parar/resumir somente o movimento de translação e finalizar o programa
 
